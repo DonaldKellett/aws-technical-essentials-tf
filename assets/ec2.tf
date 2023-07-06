@@ -37,4 +37,7 @@ export AWS_DEFAULT_REGION=${var.region}
 export DYNAMO_MODE=on
 FLASK_APP=application.py /usr/local/bin/flask run --host=0.0.0.0 --port=80
 EOT
+  tags = {
+    Name = "employee-web-app"
+  }
 }
