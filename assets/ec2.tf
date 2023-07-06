@@ -1,6 +1,25 @@
+data "aws_ami" "al2023" {
+  most_recent = true
+  
+  filter {
+    name = "name"
+    values = ["al2023-ami-2023*"]
+  }
+
+  filter {
+    name = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  filter {
+    name = "architecture"
+    values = ["x86_64"]
+  }
+}
+
 resource "aws_instance" "employee-web-app" {
-  ami = "ami-06098e58989d56f7d"
-  instance_type = "t3.micro"
+  ami = data.aws_ami.al2023.id
+  instance_type = var.instance_type
   vpc_security_group_ids = [
     aws_security_group.employee-web-app-sg.id
   ]
@@ -13,8 +32,8 @@ cd FlaskApp/
 yum -y install python3-pip
 pip install -r requirements.txt
 yum -y install stress
-export PHOTOS_BUCKET=$\{SUB_PHOTOS_BUCKET\}
-export AWS_DEFAULT_REGION=ap-east-1
+export PHOTOS_BUCKET=$${SUB_PHOTOS_BUCKET}
+export AWS_DEFAULT_REGION=${var.region}
 export DYNAMO_MODE=on
 FLASK_APP=application.py /usr/local/bin/flask run --host=0.0.0.0 --port=80
 EOT
