@@ -22,6 +22,13 @@ terraform apply
 
 `ap-east-1`, `us-west-2`
 
+## Known issues
+
+Employee mugshots don't display correctly in `ap-east-1` region due to `IllegalLocationConstraintException`, possibly due to the way the app is written - see the links below for details:
+
+- https://stackoverflow.com/questions/58143279/aws-cli-aws-s3-presign-does-not-work-for-ap-east-1-hong-kong-region-locatio
+- https://github.com/boto/boto3/issues/2098
+
 ## License
 
 [Apache 2.0](./LICENSE)

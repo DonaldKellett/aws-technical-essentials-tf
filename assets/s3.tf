@@ -19,8 +19,8 @@ resource "aws_s3_bucket_policy" "employee-photo-bucket-policy" {
         }
         Action = "s3:*"
         Resource = [
-          "arn:aws:s3:::${aws_s3_bucket.employee-photo-bucket.bucket}",
-          "arn:aws:s3:::${aws_s3_bucket.employee-photo-bucket.bucket}/*",
+          aws_s3_bucket.employee-photo-bucket.arn,
+          "${aws_s3_bucket.employee-photo-bucket.arn}/*",
         ]
       },
     ]
