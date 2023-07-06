@@ -23,6 +23,8 @@ resource "aws_instance" "employee-web-app" {
   vpc_security_group_ids = [
     aws_security_group.employee-web-app-sg.id
   ]
+  subnet_id = aws_subnet.employee-web-app-a-ec2-subnet.id
+  associate_public_ip_address = true
   iam_instance_profile = aws_iam_instance_profile.employee-web-app-profile.name
   user_data = <<EOT
 #!/bin/bash -ex

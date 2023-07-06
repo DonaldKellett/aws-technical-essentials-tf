@@ -48,12 +48,33 @@ resource "aws_internet_gateway" "employee-web-app-vpc-igw" {
   }
 }
 
-resource "aws_default_vpc" "default" {}
+resource "aws_route_table" "employee-web-app-public-rtb" {
+  vpc_id = aws_vpc.employee-web-app-vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.employee-web-app-vpc-igw.id
+  }
+
+  tags = {
+    Name = "employee-web-app-public-rtb"
+  }
+}
+
+resource "aws_route_table_association" "employee-web-app-public-rtba-a" {
+  subnet_id = aws_subnet.employee-web-app-a-ec2-subnet.id
+  route_table_id = aws_route_table.employee-web-app-public-rtb.id
+}
+
+resource "aws_route_table_association" "employee-web-app-public-rtba-b" {
+  subnet_id = aws_subnet.employee-web-app-b-ec2-subnet.id
+  route_table_id = aws_route_table.employee-web-app-public-rtb.id
+}
 
 resource "aws_security_group" "employee-web-app-sg" {
   name        = "employee-web-app-sg"
   description = "Security group for employee web app"
-  vpc_id      = aws_default_vpc.default.id
+  vpc_id      = aws_vpc.employee-web-app-vpc.id
 
   ingress {
     description      = "HTTP"
