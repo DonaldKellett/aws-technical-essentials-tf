@@ -8,6 +8,11 @@ variable "instance_type" {
   default = "t3.micro"
 }
 
+variable "email" {
+  type = string
+  default = "john.doe@example.com"
+}
+
 output "employee-web-app-ip" {
   value = aws_instance.employee-web-app.public_ip
 }

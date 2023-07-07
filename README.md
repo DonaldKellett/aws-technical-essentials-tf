@@ -17,6 +17,7 @@ terraform apply
 | --- | --- |
 | `region` | `ap-east-1` |
 | `instance_type` | `t3.micro` |
+| `email` | `john.doe@example.com` |
 
 ## Supported regions
 
