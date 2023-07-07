@@ -13,6 +13,6 @@ variable "email" {
   default = "john.doe@example.com"
 }
 
-output "employee-web-app-ip" {
-  value = aws_instance.employee-web-app.public_ip
+output "employee-web-app-endpoint" {
+  value = aws_lb.employee-web-app-lb.dns_name
 }
