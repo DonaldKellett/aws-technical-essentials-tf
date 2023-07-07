@@ -1,6 +1,6 @@
 # aws-technical-essentials-tf
 
-Terraform configuration for Employee Directory Application example in AWS Technical Essentials
+Terraform configuration for Employee Directory Application example in [AWS Technical Essentials](https://explore.skillbuilder.aws/learn/course/external/view/elearning/1851/aws-technical-essentials)
 
 ## Quick Start
 
