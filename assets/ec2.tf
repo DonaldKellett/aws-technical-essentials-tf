@@ -71,6 +71,36 @@ EOT
   }
 }
 
+resource "aws_launch_template" "employee-web-app-lt" {
+  name = "employee-web-app-lt"
+  image_id = data.aws_ami.al2023.id
+  instance_type = var.instance_type
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups = [aws_security_group.employee-web-app-ec2-sg.id]
+  }
+  iam_instance_profile {
+    arn = aws_iam_instance_profile.employee-web-app-profile.arn
+  }
+  user_data = base64encode(<<EOT
+#!/bin/bash -ex
+wget https://aws-tc-largeobjects.s3-us-west-2.amazonaws.com/DEV-AWS-MO-GCNv2/FlaskApp.zip
+unzip FlaskApp.zip
+cd FlaskApp/
+yum -y install python3-pip
+pip install -r requirements.txt
+yum -y install stress
+export PHOTOS_BUCKET=${aws_s3_bucket.employee-photo-bucket.bucket}
+export AWS_DEFAULT_REGION=${var.region}
+export DYNAMO_MODE=on
+FLASK_APP=application.py /usr/local/bin/flask run --host=0.0.0.0 --port=80
+EOT
+  )
+  tags = {
+    Name = "employee-web-app"
+  }
+}
+
 resource "aws_lb" "employee-web-app-lb" {
   name               = "employee-web-app-lb"
   internal           = false
