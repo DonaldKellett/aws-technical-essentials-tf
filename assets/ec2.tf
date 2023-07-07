@@ -17,60 +17,6 @@ data "aws_ami" "al2023" {
   }
 }
 
-resource "aws_instance" "employee-web-app-a" {
-  ami = data.aws_ami.al2023.id
-  instance_type = var.instance_type
-  vpc_security_group_ids = [
-    aws_security_group.employee-web-app-ec2-sg.id
-  ]
-  subnet_id = aws_subnet.employee-web-app-a-ec2-subnet.id
-  associate_public_ip_address = true
-  iam_instance_profile = aws_iam_instance_profile.employee-web-app-profile.name
-  user_data = <<EOT
-#!/bin/bash -ex
-wget https://aws-tc-largeobjects.s3-us-west-2.amazonaws.com/DEV-AWS-MO-GCNv2/FlaskApp.zip
-unzip FlaskApp.zip
-cd FlaskApp/
-yum -y install python3-pip
-pip install -r requirements.txt
-yum -y install stress
-export PHOTOS_BUCKET=${aws_s3_bucket.employee-photo-bucket.bucket}
-export AWS_DEFAULT_REGION=${var.region}
-export DYNAMO_MODE=on
-FLASK_APP=application.py /usr/local/bin/flask run --host=0.0.0.0 --port=80
-EOT
-  tags = {
-    Name = "employee-web-app-a"
-  }
-}
-
-resource "aws_instance" "employee-web-app-b" {
-  ami = data.aws_ami.al2023.id
-  instance_type = var.instance_type
-  vpc_security_group_ids = [
-    aws_security_group.employee-web-app-ec2-sg.id
-  ]
-  subnet_id = aws_subnet.employee-web-app-b-ec2-subnet.id
-  associate_public_ip_address = true
-  iam_instance_profile = aws_iam_instance_profile.employee-web-app-profile.name
-  user_data = <<EOT
-#!/bin/bash -ex
-wget https://aws-tc-largeobjects.s3-us-west-2.amazonaws.com/DEV-AWS-MO-GCNv2/FlaskApp.zip
-unzip FlaskApp.zip
-cd FlaskApp/
-yum -y install python3-pip
-pip install -r requirements.txt
-yum -y install stress
-export PHOTOS_BUCKET=${aws_s3_bucket.employee-photo-bucket.bucket}
-export AWS_DEFAULT_REGION=${var.region}
-export DYNAMO_MODE=on
-FLASK_APP=application.py /usr/local/bin/flask run --host=0.0.0.0 --port=80
-EOT
-  tags = {
-    Name = "employee-web-app-b"
-  }
-}
-
 resource "aws_launch_template" "employee-web-app-lt" {
   name = "employee-web-app-lt"
   image_id = data.aws_ami.al2023.id
@@ -119,18 +65,6 @@ resource "aws_lb_target_group" "employee-web-app-lb-tg" {
   vpc_id = aws_vpc.employee-web-app-vpc.id
 }
 
-resource "aws_lb_target_group_attachment" "employee-web-app-lb-tga-a" {
-  target_group_arn = aws_lb_target_group.employee-web-app-lb-tg.arn
-  target_id = aws_instance.employee-web-app-a.id
-  port = 80
-}
-
-resource "aws_lb_target_group_attachment" "employee-web-app-lb-tga-b" {
-  target_group_arn = aws_lb_target_group.employee-web-app-lb-tg.arn
-  target_id = aws_instance.employee-web-app-b.id
-  port = 80
-}
-
 resource "aws_lb_listener" "employee-web-app-lb-listener" {
   load_balancer_arn = aws_lb.employee-web-app-lb.arn
   port              = "80"
@@ -139,5 +73,39 @@ resource "aws_lb_listener" "employee-web-app-lb-listener" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.employee-web-app-lb-tg.arn
+  }
+}
+
+resource "aws_autoscaling_group" "employee-web-app-asg" {
+  name = "employee-web-app-asg"
+  vpc_zone_identifier = [
+    aws_subnet.employee-web-app-a-ec2-subnet.id,
+    aws_subnet.employee-web-app-b-ec2-subnet.id,
+  ]
+  min_size           = 2
+  max_size           = 4
+  force_delete       = true
+  health_check_type  = "ELB"
+
+  launch_template {
+    id      = aws_launch_template.employee-web-app-lt.id
+    version = "$Latest"
+  }
+}
+
+resource "aws_autoscaling_attachment" "employee-web-app-scaling-attachment" {
+  autoscaling_group_name = aws_autoscaling_group.employee-web-app-asg.id
+  lb_target_group_arn = aws_lb_target_group.employee-web-app-lb-tg.arn
+}
+
+resource "aws_autoscaling_policy" "employee-web-app-scaling-policy" {
+  name = "employee-web-app-scaling-policy"
+  autoscaling_group_name = aws_autoscaling_group.employee-web-app-asg.name
+  policy_type = "TargetTrackingScaling"
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+    target_value = 60
   }
 }
