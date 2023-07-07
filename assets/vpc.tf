@@ -71,9 +71,9 @@ resource "aws_route_table_association" "employee-web-app-public-rtba-b" {
   route_table_id = aws_route_table.employee-web-app-public-rtb.id
 }
 
-resource "aws_security_group" "employee-web-app-sg" {
-  name        = "employee-web-app-sg"
-  description = "Security group for employee web app"
+resource "aws_security_group" "employee-web-app-lb-sg" {
+  name        = "employee-web-app-lb-sg"
+  description = "Security group for employee web app load balancer"
   vpc_id      = aws_vpc.employee-web-app-vpc.id
 
   ingress {
@@ -85,14 +85,26 @@ resource "aws_security_group" "employee-web-app-sg" {
     ipv6_cidr_blocks = ["::/0"]
   }
 
-
-  ingress {
-    description      = "HTTPS"
-    from_port        = 443
-    to_port          = 443
-    protocol         = "tcp"
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
+  }
+}
+
+resource "aws_security_group" "employee-web-app-ec2-sg" {
+  name        = "employee-web-app-ec2-sg"
+  description = "Security group for employee web app EC2 instances"
+  vpc_id      = aws_vpc.employee-web-app-vpc.id
+
+  ingress {
+    description      = "HTTP"
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    security_groups  = [aws_security_group.employee-web-app-lb-sg.id]
   }
 
   egress {

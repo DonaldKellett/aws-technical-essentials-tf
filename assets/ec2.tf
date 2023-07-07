@@ -21,7 +21,7 @@ resource "aws_instance" "employee-web-app-a" {
   ami = data.aws_ami.al2023.id
   instance_type = var.instance_type
   vpc_security_group_ids = [
-    aws_security_group.employee-web-app-sg.id
+    aws_security_group.employee-web-app-ec2-sg.id
   ]
   subnet_id = aws_subnet.employee-web-app-a-ec2-subnet.id
   associate_public_ip_address = true
@@ -48,7 +48,7 @@ resource "aws_instance" "employee-web-app-b" {
   ami = data.aws_ami.al2023.id
   instance_type = var.instance_type
   vpc_security_group_ids = [
-    aws_security_group.employee-web-app-sg.id
+    aws_security_group.employee-web-app-ec2-sg.id
   ]
   subnet_id = aws_subnet.employee-web-app-b-ec2-subnet.id
   associate_public_ip_address = true
@@ -75,7 +75,7 @@ resource "aws_lb" "employee-web-app-lb" {
   name               = "employee-web-app-lb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.employee-web-app-sg.id]
+  security_groups    = [aws_security_group.employee-web-app-lb-sg.id]
   subnets            = [
     aws_subnet.employee-web-app-a-ec2-subnet.id,
     aws_subnet.employee-web-app-b-ec2-subnet.id,
